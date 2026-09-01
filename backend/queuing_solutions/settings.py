@@ -102,19 +102,37 @@ WSGI_APPLICATION = "queuing_solutions.wsgi.application"
 ASGI_APPLICATION = "queuing_solutions.asgi.application"
 
 # Database Configuration (MySQL/MariaDB parsing)
-DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("MYSQL_URL") or os.getenv("MYSQLURL") or os.getenv("MYSQLPRIVATEURL") or os.getenv("MYSQLPUBLICURL") or "mysql://root@127.0.0.1:3306/queuing_solutions"
-urllib.parse.uses_netloc.append("mysql")
-url = urllib.parse.urlparse(DATABASE_URL)
-db_name = url.path[1:] if (url.path and url.path != "/") else "railway"
+_db_host = os.getenv("MYSQLHOST") or os.getenv("MYSQL_HOST")
+_db_user = os.getenv("MYSQLUSER") or os.getenv("MYSQL_USER")
+_db_pass = os.getenv("MYSQLPASSWORD") or os.getenv("MYSQL_PASSWORD")
+_db_name = os.getenv("MYSQLDATABASE") or os.getenv("MYSQL_DATABASE")
+_db_port = os.getenv("MYSQLPORT") or os.getenv("MYSQL_PORT")
+
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("MYSQL_URL") or os.getenv("MYSQLURL") or os.getenv("MYSQLPRIVATEURL") or os.getenv("MYSQLPUBLICURL") or ""
+
+if DATABASE_URL:
+    urllib.parse.uses_netloc.append("mysql")
+    url = urllib.parse.urlparse(DATABASE_URL)
+    db_name = url.path[1:] if (url.path and url.path != "/") else (_db_name or "railway")
+    db_user = url.username or _db_user or "root"
+    db_pass = urllib.parse.unquote(url.password) if url.password else (_db_pass or "")
+    db_host = url.hostname or _db_host or "127.0.0.1"
+    db_port = int(url.port or _db_port or 3306)
+else:
+    db_name = _db_name or "queuing_solutions"
+    db_user = _db_user or "root"
+    db_pass = _db_pass or ""
+    db_host = _db_host or "127.0.0.1"
+    db_port = int(_db_port or 3306)
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": db_name,
-        "USER": url.username or "root",
-        "PASSWORD": urllib.parse.unquote(url.password) if url.password else "",
-        "HOST": url.hostname or "127.0.0.1",
-        "PORT": url.port or 3306,
+        "USER": db_user,
+        "PASSWORD": db_pass,
+        "HOST": db_host,
+        "PORT": db_port,
         "OPTIONS": {
             "charset": "utf8mb4",
         },
