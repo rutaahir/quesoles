@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  mysql_rehearsal:
+    image: mysql:8.0
+    container_name: mysql_rehearsal_server
+    environment:
+      MYSQL_ROOT_PASSWORD: root@123
+      MYSQL_DATABASE: queuing_solutions
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_rehearsal_data:/var/lib/mysql
+
+volumes:
+  mysql_rehearsal_data:
