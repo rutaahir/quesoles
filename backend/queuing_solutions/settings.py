@@ -102,17 +102,18 @@ WSGI_APPLICATION = "queuing_solutions.wsgi.application"
 ASGI_APPLICATION = "queuing_solutions.asgi.application"
 
 # Database Configuration (MySQL/MariaDB parsing)
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql://root@127.0.0.1:3306/queuing_solutions")
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("MYSQL_URL") or os.getenv("MYSQLURL") or os.getenv("MYSQLPRIVATEURL") or os.getenv("MYSQLPUBLICURL") or "mysql://root@127.0.0.1:3306/queuing_solutions"
 urllib.parse.uses_netloc.append("mysql")
 url = urllib.parse.urlparse(DATABASE_URL)
+db_name = url.path[1:] if (url.path and url.path != "/") else "railway"
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": url.path[1:],
-        "USER": url.username,
+        "NAME": db_name,
+        "USER": url.username or "root",
         "PASSWORD": urllib.parse.unquote(url.password) if url.password else "",
-        "HOST": url.hostname,
+        "HOST": url.hostname or "127.0.0.1",
         "PORT": url.port or 3306,
         "OPTIONS": {
             "charset": "utf8mb4",
