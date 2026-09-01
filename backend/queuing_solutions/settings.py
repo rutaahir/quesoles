@@ -198,17 +198,21 @@ SPECTACULAR_SETTINGS = {
 }
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.getenv("CORS_ALLOWED_ORIGINS") else []
-if not CORS_ALLOWED_ORIGINS:
+raw_cors = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+if raw_cors:
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
+else:
     CORS_ALLOW_ALL_ORIGINS = True
 
-# Security Headers & TLS enforcement
+# Security Headers & TLS enforcement behind reverse proxy (Railway)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    # Note: SECURE_BROWSER_XSS_FILTER is inert on Django 5.x/modern browsers but kept for legacy compliance
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = "DENY"
     SESSION_COOKIE_SECURE = True
