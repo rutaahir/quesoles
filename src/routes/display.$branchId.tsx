@@ -286,9 +286,9 @@ function DisplayBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBaseUrl = typeof window !== "undefined"
-    ? `http://${window.location.hostname}:8000`
-    : "http://localhost:8000";
+  const fetchBaseUrl = (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL)
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, "")
+    : (typeof window !== "undefined" ? `http://${window.location.hostname}:8000` : "http://localhost:8000");
 
   // Function to load privacy-safe public data
   const loadPublicData = async () => {

@@ -52,9 +52,19 @@ import type {
   Kiosk,
 } from "./types";
 
-const API_BASE = typeof window !== "undefined" 
-  ? `http://${window.location.hostname}:8000` 
-  : "http://localhost:8000";
+const getApiBase = () => {
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/$/, "");
+  }
+  if (typeof process !== "undefined" && process.env?.VITE_API_URL) {
+    return process.env.VITE_API_URL.replace(/\/$/, "");
+  }
+  return typeof window !== "undefined" 
+    ? `http://${window.location.hostname}:8000` 
+    : "http://localhost:8000";
+};
+
+const API_BASE = getApiBase();
 
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<any> {
   const headers = new Headers(options.headers || {});
@@ -626,8 +636,9 @@ export function QuesoleProvider({ children }: { children: ReactNode }) {
     const clientType = session.role === "operator" || session.role === "branch_admin" || session.role === "company_admin" ? "staff" : "public";
     const token = localStorage.getItem("quesole.access_token");
     
-    // Connect over our ASGI path
-    const wsUrl = `ws://localhost:8000/ws/branch/${session.branchId}/${clientType}/${clientType === "staff" ? `?token=${token}` : ""}`;
+    const wsProtocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsHost = getApiBase().replace(/^https?:\/\//, "");
+    const wsUrl = `${wsProtocol}//${wsHost}/ws/branch/${session.branchId}/${clientType}/${clientType === "staff" ? `?token=${token}` : ""}`;
     const ws = new WebSocket(wsUrl);
 
     ws.onmessage = (event) => {
