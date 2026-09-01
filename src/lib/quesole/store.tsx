@@ -52,12 +52,20 @@ import type {
   Kiosk,
 } from "./types";
 
+const formatUrl = (url: string) => {
+  let clean = url.trim().replace(/\/$/, "");
+  if (!clean.startsWith("http://") && !clean.startsWith("https://")) {
+    clean = `https://${clean}`;
+  }
+  return clean;
+};
+
 const getApiBase = () => {
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace(/\/$/, "");
+    return formatUrl(import.meta.env.VITE_API_URL);
   }
   if (typeof process !== "undefined" && process.env?.VITE_API_URL) {
-    return process.env.VITE_API_URL.replace(/\/$/, "");
+    return formatUrl(process.env.VITE_API_URL);
   }
   return typeof window !== "undefined" 
     ? `http://${window.location.hostname}:8000` 
